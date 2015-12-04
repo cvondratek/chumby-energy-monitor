@@ -46,9 +46,11 @@ public slots:
     void slotTimerMain();
     void slotTimerPowerOn();
     void parseHAData(QNetworkReply* reply);
+    void updateHAData();
 
 private:
     QTimer* timerMain;
+    QTimer* timerHAUpdate;
     QLabel* boldHeader;
     QLabel* debugBanner;
     QLabel* versionBanner;
@@ -61,7 +63,6 @@ private:
     QString AppStyleSheet;
 
     void updateClock();
-    bool updateHAData();
 };
 //! [0]
 

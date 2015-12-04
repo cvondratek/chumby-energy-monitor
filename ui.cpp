@@ -96,7 +96,12 @@ UI::UI() : QMainWindow()
     houseInfo->setText("Up:00F Down:00F XXXX Watts" );
 
     updateHAData();
-   
+
+
+    timerHAUpdate = new QTimer(this);
+    connect(timerHAUpdate, SIGNAL(timeout()), this, SLOT(updateHAData()));
+    timerHAUpdate->start(60000);
+
     QTimer::singleShot(1000, this, SLOT(slotTimerPowerOn()));
 }
 
@@ -173,7 +178,7 @@ void UI::parseHAData(QNetworkReply* reply)
 
                 //update display
                 QString dispStr;
-                dispStr.sprintf("Up: %dF -- Down: %dF -- %d Watts", tempUpstairs,tempDownstairs,watts);
+                dispStr.sprintf("Up: %dF   Down: %dF     %d Watts", tempUpstairs,tempDownstairs,watts);
                 houseInfo->setText(dispStr);
 
 /*                if(attribs.hasAttribute("id"))
@@ -222,13 +227,13 @@ void UI::parseHAData(QNetworkReply* reply)
     reply->deleteLater();
 }
 
-bool UI::updateHAData() {
+void UI::updateHAData() {
     qDebug("Updating HA data from Vera...");
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
     connect(manager,SIGNAL(finished(QNetworkReply*)),this,SLOT(parseHAData(QNetworkReply*)));
     manager->get(QNetworkRequest(QUrl("http://192.168.69.252:3480/data_request?id=sdata&output_format=xml")));
 
-    return true;
+    return;
 }
 
 void UI::slotErrorFatal(QString errorMsg)
