@@ -20,6 +20,7 @@
 #include <QtGui/QLineEdit>
 #include <QKeyEvent>
 #include <QThread>
+#include <QtNetwork/QNetworkReply>
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -44,6 +45,7 @@ public:
 public slots:
     void slotTimerMain();
     void slotTimerPowerOn();
+    void parseHAData(QNetworkReply* reply);
 
 private:
     QTimer* timerMain;
@@ -54,6 +56,7 @@ private:
     QLabel* scrText;
     QPushButton* clock;
     QPushButton* currTemp;
+    QPushButton* houseInfo;
 
     QString AppStyleSheet;
 

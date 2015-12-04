@@ -35,6 +35,7 @@
 #define FONTSZ_LARGE  QFont("Open Sans", 24)
 #define FONTSZ_XLARGE  QFont("Open Sans", 36, QFont::Bold)
 #define FONTSZ_CLOCK  QFont("Open Sans", 14)
+#define FONTSZ_HOUSEINFO QFont("Open Sans", 16)
 
 UI::UI() : QMainWindow()
 {
@@ -80,13 +81,20 @@ UI::UI() : QMainWindow()
     clock->setText("January 1, 0000   00:00 PM" );   
     updateClock();
 
-    //temperature
-    currTemp = new QPushButton(this);
-    currTemp->setGeometry(QRect(QPoint(250,210),QSize(65,25)));
-    currTemp->setFont(FONTSZ_CLOCK);
+    //outside temperature
+/*    currTemp = new QPushButton(this);
+    currTemp->setGeometry(QRect(QPoint(250,100),QSize(65,25)));
+    currTemp->setFont(FONTSZ_LARGE);
     currTemp->setObjectName("temp");
     currTemp->setText("000 F" );   
-    
+*/
+    //topline text, date, clock, etc
+    houseInfo = new QPushButton(this);
+    houseInfo->setGeometry(QRect(QPoint(5,200),QSize(310,35)));
+    houseInfo->setFont(FONTSZ_HOUSEINFO);
+    houseInfo->setObjectName("houseInfo");
+    houseInfo->setText("Up:00F Down:00F XXXX Watts" );
+
     updateHAData();
    
     QTimer::singleShot(1000, this, SLOT(slotTimerPowerOn()));
@@ -98,41 +106,129 @@ void UI::updateClock()
     clock->setText(now.toString("d MMMM yy     h:mm.ss AP"));
 }
 
+void UI::parseHAData(QNetworkReply* reply)
+{
+    int watts=0;
+    int tempUpstairs=0;
+    int tempDownstairs=0;
+    int tempOutside=0;
+
+    qDebug() << "HA: bytes received: " << reply->bytesAvailable();
+
+    //qDebug() << reply->readAll();
+
+    QXmlStreamReader xmlReader(reply);
+    while(!xmlReader.atEnd())
+    {
+        xmlReader.readNext();
+        if(xmlReader.isStartElement())
+        {
+            //qDebug() << xmlReader.readElementText(QXmlStreamReader::IncludeChildElements);
+            QString sec(xmlReader.name().toString());
+            //qDebug() << sec;
+            if(sec == "device")
+            {
+                QString deviceName = "noDevice";
+
+                QXmlStreamAttributes attribs = xmlReader.attributes();
+
+                if(attribs.hasAttribute("name"))
+                {
+                    deviceName = attribs.value("name").toString();
+                    //qDebug() << "\tname=" << attribs.value("name").toString();
+                }
+
+                if(deviceName=="Home Energy Monitor")
+                {
+                    if(attribs.hasAttribute("watts"))
+                    {
+                        watts = attribs.value("watts").toString().toInt();
+                        qDebug() << "HA: Watts = " << watts;
+                    }
+                    else
+                        qDebug("HA: Error - No \"watts\" attribute for Home Energy Monitor!");
+                }
+
+                if(deviceName=="Downstairs")
+                {
+                    if(attribs.hasAttribute("temperature"))
+                    {
+                        tempDownstairs = attribs.value("temperature").toString().toInt();
+                        qDebug() << "HA: Downstairs = " << tempDownstairs << " F";
+                    }
+                    else
+                        qDebug("HA: Error - No \"temperature\" attribute for Downstairs!");
+                }
+
+                if(deviceName=="Upstairs")
+                {
+                    if(attribs.hasAttribute("temperature"))
+                    {
+                        tempUpstairs = attribs.value("temperature").toString().toInt();
+                        qDebug() << "HA: Upstairs = " << tempUpstairs << " F";
+                    }
+                    else
+                        qDebug("HA: Error - No \"temperature\" attribute for Upstairs!");
+                }
+
+                //update display
+                QString dispStr;
+                dispStr.sprintf("Up: %dF -- Down: %dF -- %d Watts", tempUpstairs,tempDownstairs,watts);
+                houseInfo->setText(dispStr);
+
+/*                if(attribs.hasAttribute("id"))
+                    qDebug() << "\tid=" << attribs.value("id").toString();
+                if(attribs.hasAttribute("status"))
+                    qDebug() << "\tstatus=" << attribs.value("status").toString();
+                if(attribs.hasAttribute("level"))
+                    qDebug() << "\tlevel=" << attribs.value("level").toString();
+*/
+
+
+
+            }
+        }
+        else if(xmlReader.hasError())
+            qDebug() << xmlReader.errorString();
+
+    }
+
+#if 0
+    while (!xmlReader.isEndDocument())
+    {
+        qDebug("loop");
+
+        if (xmlReader.hasError())
+        {
+            qDebug("xmlReader crapped");
+            break;
+        }
+
+        if (xmlReader.isStartElement())
+        {
+            QString name = xmlReader.name().toString();
+            if (name == "device name")
+            {
+                qDebug() << "dev: " << qPrintable(xmlReader.readElementText());
+                break;
+            }
+        }
+        else if (xmlReader.isEndElement())
+        {
+            xmlReader.readNext();
+        }
+    }
+#endif
+    reply->deleteLater();
+}
+
 bool UI::updateHAData() {
     qDebug("Updating HA data from Vera...");
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-    //QNetworkReply* reply = QNetworkAccessManager::get( manager->get( QNetworkRequest( QUrl("http://192.168.69.252:3480/data_request?id=sdata&output_format=xml"))));
-    QUrl* vera_sdata = QUrl("http://192.168.69.252:3480/data_request?id=sdata&output_format=xml");
-    //QNetworkRequest* req = QNetworkRequest(vera_sdata);
-    //QNetworkReply* reply = manager->get(req);
-    QNetworkReply* reply = manager->get( QNetworkRequest( QUrl("http://192.168.69.252:3480/data_request?id=sdata&output_format=xml")));
+    connect(manager,SIGNAL(finished(QNetworkReply*)),this,SLOT(parseHAData(QNetworkReply*)));
+    manager->get(QNetworkRequest(QUrl("http://192.168.69.252:3480/data_request?id=sdata&output_format=xml")));
 
-    qDebug << "waiting for reply for" << qPrintable(vera_sdata->toString());
-    reply->waitForReadyRead(3000); //wait until doc is available
-    qDebug() << "bytes received: " << reply->bytesAvailable();
-    QXmlStreamReader xmlReader(reply);
-    xmlReader.readNext();
-    //Reading from the file
-     while (!xmlReader.isEndDocument())
-     {
-         //qDebug("loop");
-         if (xmlReader.isStartElement()) {
-             QString name = xmlReader.name().toString();
-             if (name == "device name") {
-                 qDebug() << "dev: " << qPrintable(xmlReader.readElementText());
-             }
-         }
-         else if (xmlReader.isEndElement())
-         {
-             xmlReader.readNext();
-         }
-     }
-     if (xmlReader.hasError()) {
-         qDebug("xmlReader crapped");
-         return false;
-     }
-
-     return true;
+    return true;
 }
 
 void UI::slotErrorFatal(QString errorMsg)
