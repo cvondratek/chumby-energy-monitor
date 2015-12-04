@@ -1,0 +1,1 @@
+arm-chumby-linux-gnueabi-g++ -Xlinker -Bstatic -Wl,-O1 -Wl,-rpath,/home/cvondrachek/chumby_dev_2015/QtInstall/lib -o kidclock main.o ui.o screenmanager.o NVRAM.o moc_ui.o moc_screenmanager.o moc_NVRAM.o qrc_project.o -L/home/cvondrachek/chumby_dev_2015/QtInstall/lib -ldl -pthread -lQtGui -lQtNetwork -lQtCore

@@ -1,0 +1,45 @@
+export CROSSDIR=/home/cvondrachek/x-tools/arm-chumby-linux-gnueabi/bin
+export QTINSTALL=/home/cvondrachek/chumby_dev_2015/QtInstall
+
+export PATH=${CROSSDIR}:/bin:${QTINSTALL}/bin:${CROSSDIR}/usr/bin:/usr/bin
+
+export TOOLCHAIN_SYS=arm-chumby-linux-gnueabi
+export TOOLCHAIN_PREFIX=$TOOLCHAIN_SYS-
+export CC=${TOOLCHAIN_PREFIX}gcc
+export CXX=${TOOLCHAIN_PREFIX}g++
+export GDB=${TOOLCHAIN_PREFIX}gdb
+export CPP="${TOOLCHAIN_PREFIX}gcc -E"
+export NM=${TOOLCHAIN_PREFIX}nm
+export AS=${TOOLCHAIN_PREFIX}as
+export AR=${TOOLCHAIN_PREFIX}ar
+export RANLIB=${TOOLCHAIN_PREFIX}ranlib
+export OBJCOPY=${TOOLCHAIN_PREFIX}objcopy
+export OBJDUMP=${TOOLCHAIN_PREFIX}objdump
+export STRIP=${TOOLCHAIN_PREFIX}strip
+export CONFIGURE_FLAGS="--target=arm-oe-linux-gnueabi --host=arm-oe-linux-gnueabi --build=i686-linux"
+export CPPFLAGS=" -march=armv5 -marm -mthumb-interwork -mfloat-abi=softfp"
+export CFLAGS="$CPPFLAGS"
+export CXXFLAGS="$CPPFLAGS"
+#export LDFLAGS=""
+export OE_QMAKE_CFLAGS="$CFLAGS"
+export OE_QMAKE_CXXFLAGS="$CXXFLAGS"
+#export OE_QMAKE_LDFLAGS="$LDFLAGS"
+export OE_QMAKE_CC=$CC
+export OE_QMAKE_CXX=$CXX
+export OE_QMAKE_LINK=$CXX
+export OE_QMAKE_AR=$AR
+export OE_QMAKE_LIBDIR_QT=${QTINSTALL}/lib/
+export OE_QMAKE_INCDIR_QT=${QTINSTALL}/include/Qt/
+export CPLUS_INCLUDE_PATH=${QTINSTALL}/include/Qt/
+export OE_QMAKE_HOST_BINDIR_QT=${QTINSTALL}/bin/
+export OE_QMAKE_MOC=${QTINSTALL}/bin/moc
+export OE_QMAKE_UIC=${QTINSTALL}/bin/uic
+export OE_QMAKE_RCC=${QTINSTALL}/bin/rcc
+#export OE_QMAKE_QDBUSCPP2XML=$SDK_PATH_NATIVE/usr/bin/qdbuscpp2xml4
+#export OE_QMAKE_QDBUSXML2CPP=$SDK_PATH_NATIVE/usr/bin/qdbusxml2cpp4
+export OE_QMAKE_QT_CONFIG=${QTINSTALL}/mkspecs/qconfig.pri
+export OE_QMAKE_STRIP="echo"
+export QMAKESPEC=${QTINSTALL}/mkspecs/qws/linux-chumby-g++
+export QMAKE_DEFAULT_LIBDIRS=${QT_QMAKE_LIBDIR_QT}
+export QMAKE_DEFAULT_INCDIRS=${QT_QMAKE_INCDIR_QT}
+export PS1="\[\e[32;1m\][chumby_qtdev]\[\e[0m\]:\w> "

@@ -1,0 +1,7 @@
+chumby
+*.o
+moc_*
+Makefile
+qrc_project.cpp
+*.pro.user
+	

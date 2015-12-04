@@ -1,0 +1,22 @@
+* {outline: 0;}
+
+QMainWindow {background-color: rgb(50,50,50);}
+
+QLabel#boldHeader {color: black;}
+QLabel#versionBanner {color: rgb(70,70,70);}
+QLabel#debugBanner {color: rgb(0,0,0);}
+QLabel#errorText {color: red;}
+
+QLabel {
+	color: black;	
+}
+
+QLineEdit {
+	background-color: white; 
+	border:2px; 
+	border-radius:1px; 
+	border-color:rgb(102,102,102);
+    	border-style:inset;
+	color: black; 
+}
+
