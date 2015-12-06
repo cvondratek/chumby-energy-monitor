@@ -1,4 +1,4 @@
-/*
+/*f
 *  ui.cpp - Main UI View 
 *  c. ProtoLogic, 2015, chris@protologicnw.com
 *
@@ -39,6 +39,9 @@
 
 UI::UI() : QMainWindow()
 {
+
+    networkAccessActive=false;
+
     qDebug("****ChumbyEntry_" APPREV " - " __DATE__ ", " __TIME__ " ["  HO "]****" );
 
     //get environment.  These are pulled from nvram by the calling script just prior to launching the Qt app
@@ -119,7 +122,6 @@ void UI::parseHAData(QNetworkReply* reply)
     int tempOutside=0;
 
     qDebug() << "HA: bytes received: " << reply->bytesAvailable();
-
     //qDebug() << reply->readAll();
 
     QXmlStreamReader xmlReader(reply);
@@ -198,41 +200,26 @@ void UI::parseHAData(QNetworkReply* reply)
 
     }
 
-#if 0
-    while (!xmlReader.isEndDocument())
-    {
-        qDebug("loop");
-
-        if (xmlReader.hasError())
-        {
-            qDebug("xmlReader crapped");
-            break;
-        }
-
-        if (xmlReader.isStartElement())
-        {
-            QString name = xmlReader.name().toString();
-            if (name == "device name")
-            {
-                qDebug() << "dev: " << qPrintable(xmlReader.readElementText());
-                break;
-            }
-        }
-        else if (xmlReader.isEndElement())
-        {
-            xmlReader.readNext();
-        }
-    }
-#endif
     reply->deleteLater();
+    manager->deleteLater();
+    networkAccessActive=false;
+
+//   this->deleteLater();
+//    exit(0);
 }
 
 void UI::updateHAData() {
+    if(networkAccessActive)
+    {
+        qDebug("Previous network access hung!");
+        return;
+    }
+
+    networkAccessActive=true;
     qDebug("Updating HA data from Vera...");
-    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    manager = new QNetworkAccessManager(this);
     connect(manager,SIGNAL(finished(QNetworkReply*)),this,SLOT(parseHAData(QNetworkReply*)));
     manager->get(QNetworkRequest(QUrl("http://192.168.69.252:3480/data_request?id=sdata&output_format=xml")));
-
     return;
 }
 

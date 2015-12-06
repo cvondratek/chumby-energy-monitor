@@ -51,6 +51,8 @@ public slots:
 private:
     QTimer* timerMain;
     QTimer* timerHAUpdate;
+    QNetworkAccessManager *manager;
+    bool networkAccessActive;
     QLabel* boldHeader;
     QLabel* debugBanner;
     QLabel* versionBanner;
