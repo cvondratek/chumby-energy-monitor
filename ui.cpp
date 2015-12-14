@@ -1,4 +1,4 @@
-/*f
+/*
 *  ui.cpp - Main UI View 
 *  c. ProtoLogic, 2015, chris@protologicnw.com
 *
@@ -24,7 +24,8 @@
 #include <QUrl>
 #include <QtXml/QXmlReader>
 #include <QWSServer>
-
+#include <QImage>
+#include <QPixmap>
 #include "ui.h"
 
 #define APPREV "A1"
@@ -36,6 +37,13 @@
 #define FONTSZ_XLARGE  QFont("Open Sans", 36, QFont::Bold)
 #define FONTSZ_CLOCK  QFont("Open Sans", 14)
 #define FONTSZ_HOUSEINFO QFont("Open Sans", 16)
+
+#define GRAPH_SZ_X 300
+
+QList<int> tempBufferUp;
+QList<int> tempBufferDown;
+QList<int> wattsBuffer;
+
 
 UI::UI() : QMainWindow()
 {
@@ -91,6 +99,16 @@ UI::UI() : QMainWindow()
     currTemp->setObjectName("temp");
     currTemp->setText("000 F" );   
 */
+
+    //temperature bar graph
+    tempGraph = new QImage(GRAPH_SZ_X,150,QImage::Format_RGB32);
+    tempGraph->fill(0);
+
+    graphArea = new QLabel(this);
+    graphArea->setGeometry(QRect(QPoint(10,40),QSize(GRAPH_SZ_X,150)));
+    graphArea->setPixmap(QPixmap::fromImage(*tempGraph));;
+    graphArea->show();
+
     //topline text, date, clock, etc
     houseInfo = new QPushButton(this);
     houseInfo->setGeometry(QRect(QPoint(5,200),QSize(310,35)));
@@ -100,11 +118,11 @@ UI::UI() : QMainWindow()
 
     updateHAData();
 
-
     timerHAUpdate = new QTimer(this);
     connect(timerHAUpdate, SIGNAL(timeout()), this, SLOT(updateHAData()));
-    timerHAUpdate->start(60000);
-
+//    timerHAUpdate->start(5000);
+    timerHAUpdate->start(30000);
+ 
     QTimer::singleShot(1000, this, SLOT(slotTimerPowerOn()));
 }
 
@@ -203,6 +221,32 @@ void UI::parseHAData(QNetworkReply* reply)
     reply->deleteLater();
     manager->deleteLater();
     networkAccessActive=false;
+
+		//enqueue
+                tempBufferUp.insert(0,tempUpstairs);
+		tempBufferDown.insert(0,tempDownstairs);
+		wattsBuffer.insert(0,watts);
+
+		if(tempBufferUp.size()>GRAPH_SZ_X)
+		{
+			tempBufferUp.removeLast();
+			tempBufferDown.removeLast();
+			wattsBuffer.removeLast();
+		}
+
+		tempGraph->fill(0);	
+
+		for(int i=0; i<tempBufferUp.size(); i++)
+		{    
+			tempGraph->setPixel(GRAPH_SZ_X-i-1,(45-(tempBufferUp[i]-55)*2),0xFF);
+			tempGraph->setPixel(GRAPH_SZ_X-i-1,(95-(tempBufferDown[i]-55)*2),0xFF00);
+			tempGraph->setPixel(GRAPH_SZ_X-i-1,(145-(wattsBuffer[i]/100)),0xFF0000);
+		}
+
+		graphArea->setPixmap(QPixmap::fromImage(*tempGraph));;
+		graphArea->show();
+
+
 
 //   this->deleteLater();
 //    exit(0);

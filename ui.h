@@ -61,8 +61,12 @@ private:
     QPushButton* clock;
     QPushButton* currTemp;
     QPushButton* houseInfo;
+    QLabel* graphArea;
+    QImage* tempGraph;
 
     QString AppStyleSheet;
+
+
 
     void updateClock();
 };
